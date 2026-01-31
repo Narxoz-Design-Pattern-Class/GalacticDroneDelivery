@@ -21,27 +21,9 @@ public class Dispatcher {
             return new Result(false, "Task state is not CREATED");
         }
 
-        try {
-            // Update Task State and Drone Assignment
-            java.lang.reflect.Method setTaskState = DeliveryTask.class.getDeclaredMethod("setState", TaskState.class);
-            setTaskState.setAccessible(true);
-            setTaskState.invoke(task, TaskState.ASSIGNED);
-
-            java.lang.reflect.Method setAssignedDrone = DeliveryTask.class.getDeclaredMethod("setAssignedDrone",
-                    Drone.class);
-            setAssignedDrone.setAccessible(true);
-            setAssignedDrone.invoke(task, drone);
-
-            // Update Drone Status
-            java.lang.reflect.Method setDroneStatus = Drone.class.getDeclaredMethod("setStatus", DroneStatus.class);
-            setDroneStatus.setAccessible(true);
-            setDroneStatus.invoke(drone, DroneStatus.IN_FLIGHT);
-
-            return new Result(true, null);
-
-        } catch (Exception e) {
-            return new Result(false, "Internal Error: " + e.getMessage());
-        }
+        task.assignTo(drone);
+        drone.markInFlight();
+        return new Result(true, null);
     }
 
     public Result completeTask(DeliveryTask task) {
@@ -58,21 +40,8 @@ public class Dispatcher {
             return new Result(false, "Drone is not IN_FLIGHT");
         }
 
-        try {
-            // Update Task State
-            java.lang.reflect.Method setTaskState = DeliveryTask.class.getDeclaredMethod("setState", TaskState.class);
-            setTaskState.setAccessible(true);
-            setTaskState.invoke(task, TaskState.DONE);
-
-            // Update Drone Status
-            java.lang.reflect.Method setDroneStatus = Drone.class.getDeclaredMethod("setStatus", DroneStatus.class);
-            setDroneStatus.setAccessible(true);
-            setDroneStatus.invoke(task.getAssignedDrone(), DroneStatus.IDLE);
-
-            return new Result(true, null);
-
-        } catch (Exception e) {
-            return new Result(false, "Internal Error: " + e.getMessage());
-        }
+        task.markDone();
+        task.getAssignedDrone().markIdle();
+        return new Result(true, null);
     }
 }
