@@ -3,6 +3,7 @@ package edu.narxoz.galactic.task;
 import edu.narxoz.galactic.bodies.CelestialBody;
 import edu.narxoz.galactic.cargo.Cargo;
 import edu.narxoz.galactic.drones.Drone;
+import edu.narxoz.galactic.drones.DroneStatus;
 
 public class DeliveryTask {
     private CelestialBody origin;
@@ -49,12 +50,35 @@ public class DeliveryTask {
         return origin.distanceTo(destination) / assignedDrone.speedKmPerMin();
     }
 
-    // Package-private setters as per requirements
-    void setState(TaskState state) {
-        this.state = state;
+    public void assignTo(Drone drone) {
+        if (drone == null) {
+            throw new IllegalArgumentException("Drone cannot be null");
+        }
+        if (state != TaskState.CREATED) {
+            throw new IllegalStateException("Task state is not CREATED");
+        }
+        if (drone.getStatus() != DroneStatus.IDLE) {
+            throw new IllegalStateException("Drone is not IDLE");
+        }
+        if (cargo.getWeightKg() > drone.getMaxPayloadKg()) {
+            throw new IllegalStateException("Cargo weight exceeds drone payload");
+        }
+        this.assignedDrone = drone;
+        this.state = TaskState.ASSIGNED;
+        drone.markInFlight();
     }
 
-    void setAssignedDrone(Drone drone) {
-        this.assignedDrone = drone;
+    public void complete() {
+        if (state != TaskState.ASSIGNED) {
+            throw new IllegalStateException("Task is not ASSIGNED");
+        }
+        if (assignedDrone == null) {
+            throw new IllegalStateException("No assigned drone");
+        }
+        if (assignedDrone.getStatus() != DroneStatus.IN_FLIGHT) {
+            throw new IllegalStateException("Drone is not IN_FLIGHT");
+        }
+        assignedDrone.markIdle();
+        state = TaskState.DONE;
     }
 }
