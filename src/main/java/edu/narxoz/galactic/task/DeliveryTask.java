@@ -49,12 +49,12 @@ public class DeliveryTask {
         return origin.distanceTo(destination) / assignedDrone.speedKmPerMin();
     }
 
-    // Package-private setters as per requirements
-    void setState(TaskState state) {
-        this.state = state;
+    public void assignTo(Drone drone) {
+        this.state = TaskState.ASSIGNED;
+        this.assignedDrone = drone;
     }
 
-    void setAssignedDrone(Drone drone) {
-        this.assignedDrone = drone;
+    public void markDone() {
+        this.state = TaskState.DONE;
     }
 }
