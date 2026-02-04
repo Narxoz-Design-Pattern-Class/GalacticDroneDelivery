@@ -1,25 +1,29 @@
 package edu.narxoz.galactic;
 
-import edu.narxoz.galactic.bodies.Planet;
-import edu.narxoz.galactic.bodies.SpaceStation;
+import edu.narxoz.galactic.bodies.CelestialBody;
 import edu.narxoz.galactic.cargo.Cargo;
 import edu.narxoz.galactic.dispatcher.Dispatcher;
 import edu.narxoz.galactic.dispatcher.Result;
-import edu.narxoz.galactic.drones.HeavyDrone;
-import edu.narxoz.galactic.drones.LightDrone;
+import edu.narxoz.galactic.drones.Drone;
+import edu.narxoz.galactic.factory.DeliveryFactory;
+import edu.narxoz.galactic.factory.HeavyDeliveryFactory;
+import edu.narxoz.galactic.factory.LightDeliveryFactory;
 import edu.narxoz.galactic.task.DeliveryTask;
 import edu.narxoz.galactic.task.TaskState;
 
 public class Main {
     public static void main(String[] args) {
         // Setup
-        Planet earth = new Planet("Earth", 0, 0, "Nitrogen-Oxygen");
-        SpaceStation marsStation = new SpaceStation("Mars Station", 100, 200, 5); // Distance ~223.6
+        DeliveryFactory lightFactory = new LightDeliveryFactory();
+        DeliveryFactory heavyFactory = new HeavyDeliveryFactory();
 
-        Cargo heavyCargo = new Cargo(50.0, "Heavy Machinery");
+        CelestialBody earth = lightFactory.createOrigin();
+        CelestialBody marsStation = lightFactory.createDestination(); // Distance ~223.6
 
-        LightDrone lightDrone = new LightDrone("LD-01", 30.0); // Payload 30 < 50
-        HeavyDrone heavyDrone = new HeavyDrone("HD-01", 100.0); // Payload 100 > 50
+        Cargo heavyCargo = heavyFactory.createCargo();
+
+        Drone lightDrone = lightFactory.createDrone("LD-01"); // Payload 30 < 50
+        Drone heavyDrone = heavyFactory.createDrone("HD-01"); // Payload 100 > 50
 
         Dispatcher dispatcher = new Dispatcher();
 

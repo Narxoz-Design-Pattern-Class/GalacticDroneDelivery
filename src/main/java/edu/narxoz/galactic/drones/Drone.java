@@ -31,4 +31,18 @@ public abstract class Drone {
     protected void setStatus(DroneStatus status) {
         this.status = status;
     }
+
+    public void markInFlight() {
+        if (status != DroneStatus.IDLE) {
+            throw new IllegalStateException("Drone must be IDLE to start flight");
+        }
+        setStatus(DroneStatus.IN_FLIGHT);
+    }
+
+    public void markIdle() {
+        if (status != DroneStatus.IN_FLIGHT) {
+            throw new IllegalStateException("Drone must be IN_FLIGHT to become IDLE");
+        }
+        setStatus(DroneStatus.IDLE);
+    }
 }

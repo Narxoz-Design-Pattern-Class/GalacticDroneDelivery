@@ -1,9 +1,7 @@
 package edu.narxoz.galactic.dispatcher;
 
 import edu.narxoz.galactic.drones.Drone;
-import edu.narxoz.galactic.drones.DroneStatus;
 import edu.narxoz.galactic.task.DeliveryTask;
-import edu.narxoz.galactic.task.TaskState;
 
 public class Dispatcher {
 
@@ -11,36 +9,11 @@ public class Dispatcher {
         if (task == null || drone == null) {
             return new Result(false, "Task or Drone is null");
         }
-        if (drone.getStatus() != DroneStatus.IDLE) {
-            return new Result(false, "Drone is not IDLE");
-        }
-        if (task.getCargo().getWeightKg() > drone.getMaxPayloadKg()) {
-            return new Result(false, "Cargo weight exceeds drone payload");
-        }
-        if (task.getState() != TaskState.CREATED) {
-            return new Result(false, "Task state is not CREATED");
-        }
-
         try {
-            // Update Task State and Drone Assignment
-            java.lang.reflect.Method setTaskState = DeliveryTask.class.getDeclaredMethod("setState", TaskState.class);
-            setTaskState.setAccessible(true);
-            setTaskState.invoke(task, TaskState.ASSIGNED);
-
-            java.lang.reflect.Method setAssignedDrone = DeliveryTask.class.getDeclaredMethod("setAssignedDrone",
-                    Drone.class);
-            setAssignedDrone.setAccessible(true);
-            setAssignedDrone.invoke(task, drone);
-
-            // Update Drone Status
-            java.lang.reflect.Method setDroneStatus = Drone.class.getDeclaredMethod("setStatus", DroneStatus.class);
-            setDroneStatus.setAccessible(true);
-            setDroneStatus.invoke(drone, DroneStatus.IN_FLIGHT);
-
+            task.assignTo(drone);
             return new Result(true, null);
-
-        } catch (Exception e) {
-            return new Result(false, "Internal Error: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return new Result(false, e.getMessage());
         }
     }
 
@@ -48,31 +21,11 @@ public class Dispatcher {
         if (task == null) {
             return new Result(false, "Task is null");
         }
-        if (task.getState() != TaskState.ASSIGNED) {
-            return new Result(false, "Task is not ASSIGNED");
-        }
-        if (task.getAssignedDrone() == null) {
-            return new Result(false, "No assigned drone");
-        }
-        if (task.getAssignedDrone().getStatus() != DroneStatus.IN_FLIGHT) {
-            return new Result(false, "Drone is not IN_FLIGHT");
-        }
-
         try {
-            // Update Task State
-            java.lang.reflect.Method setTaskState = DeliveryTask.class.getDeclaredMethod("setState", TaskState.class);
-            setTaskState.setAccessible(true);
-            setTaskState.invoke(task, TaskState.DONE);
-
-            // Update Drone Status
-            java.lang.reflect.Method setDroneStatus = Drone.class.getDeclaredMethod("setStatus", DroneStatus.class);
-            setDroneStatus.setAccessible(true);
-            setDroneStatus.invoke(task.getAssignedDrone(), DroneStatus.IDLE);
-
+            task.complete();
             return new Result(true, null);
-
-        } catch (Exception e) {
-            return new Result(false, "Internal Error: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return new Result(false, e.getMessage());
         }
     }
 }
